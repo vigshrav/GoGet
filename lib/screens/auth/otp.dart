@@ -104,9 +104,9 @@ class _OTPState extends State<OTP> {
                     style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.orange),),
                     child: Text('Confirm'),
                     onPressed: () async {
-                      setState(() {
-                        loading = true;
-                      });
+                      // setState(() {
+                      //   loading = true;
+                      // });
                       if (widget.type == 'signin') {
                         await AuthService().signInWithOTP(otpkey, widget.verID);
                         Navigator.of(context).popUntil((route) => route.isFirst);
