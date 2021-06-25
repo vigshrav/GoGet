@@ -6,9 +6,9 @@ Fiverr Project - GoGet - Local Grocery Listing App
 
 1. Download the zip file
 2. Unzip and open in your favorite code editor
-3. Do a from the project folder 'Flutter clean' (using CLI)
+3. From the project folder, do a 'Flutter clean' (using CLI)
 4. Followed by 'Flutter packages get' (using CLI)
-5. Finally, 'Flutter run', to launch on your emulator or physical device (using CLI)
+5. Finally, 'Flutter run', to launch the app on your emulator or physical device (using CLI)
 
 ### Features
 
