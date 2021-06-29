@@ -96,7 +96,7 @@ class _RecommScreenState extends State<RecommScreen> {
                                               children: [
                                                 
                                                 Container(padding: EdgeInsets.only(left: 10.0),
-                                                  width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)) * 0.75,
+                                                  width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)) * 0.74,
                                                   child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
                                                       Text('Address :', style: GoogleFonts.openSans(fontWeight: FontWeight.bold),),
@@ -114,16 +114,16 @@ class _RecommScreenState extends State<RecommScreen> {
                                                   ),
                                                 ),
                                                 Container(
-                                                  width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)) * 0.25,
+                                                  width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)) * 0.24,
                                                   child:_showRating(stRating, document),
-                                                ),
+                                                )
                                               ],
                                             ),
                                             Divider(color: Colors.grey,),
                                             SingleChildScrollView(
                                               child: Container(
                                                 padding: const EdgeInsets.only(top: 5.0),
-                                                height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.4,
+                                                height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.39,
                                                 child: Column(
                                                   children: [
                                                     Container(
@@ -133,8 +133,8 @@ class _RecommScreenState extends State<RecommScreen> {
                                                       child:Row(//mainAxisAlignment: MainAxisAlignment.spaceAround,
                                                         children: [
                                                           Container(
-                                                            width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.5,
-                                                            padding: EdgeInsets.only(right: 70),
+                                                            width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.49,
+                                                            padding: EdgeInsets.only(right: 80),
                                                             child: Text('Item'), alignment: Alignment.center,),
                                                           Container(
                                                             width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.2,
@@ -144,7 +144,7 @@ class _RecommScreenState extends State<RecommScreen> {
                                                             padding: EdgeInsets.only(right: 50),
                                                             child: Text('Qty'), alignment: Alignment.center,),
                                                           Container(
-                                                            width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.1,
+                                                            width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.11,
                                                             child: Text('Cost'), alignment: Alignment.centerLeft,)
                                                         ],
                                                       ),
@@ -213,7 +213,7 @@ class _RecommScreenState extends State<RecommScreen> {
       direction: Axis.horizontal,
       allowHalfRating: true,
       itemCount: 5,
-      itemSize: 20.0,
+      itemSize: 18.0,
       itemBuilder: (context, _) => Icon(
         Icons.star,
         color: Colors.amber,
