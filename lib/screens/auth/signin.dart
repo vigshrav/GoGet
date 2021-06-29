@@ -1,7 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:gogetapp/screens/auth/otp.dart';
 import 'package:gogetapp/screens/auth/signup.dart';
 import 'package:gogetapp/services/fire_auth.dart';
 import 'package:gogetapp/widgets/spinner.dart';
@@ -19,7 +17,7 @@ class _SignInState extends State<SignIn> {
   final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
   
-  late String phoneNo, verificationId, smsCode;
+  late String email, pwd;
 
   String error = '';
 
@@ -27,6 +25,17 @@ class _SignInState extends State<SignIn> {
   bool loading = false;
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  //To Validate email
+  String? validateEmail(String value) {
+    String pattern =
+        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+    RegExp regex = new RegExp(pattern);
+    if (!regex.hasMatch(value))
+      return 'Enter Valid Email';
+    else
+      return null;
+  }  
   
   @override
   Widget build(BuildContext context) {
@@ -62,9 +71,9 @@ class _SignInState extends State<SignIn> {
                 children: [
                   TextFormField(
                     decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.phone, color: Colors.orange,),
-                      labelText: 'Phone Number',
-                      labelStyle: GoogleFonts.openSans(color: Colors.black54,),
+                      prefixIcon: Icon(Icons.alternate_email, color: Colors.orange,),
+                      labelText: 'email',
+                      labelStyle: GoogleFonts.openSans(color: Colors.green,),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(25.0),),
                         borderSide: BorderSide(color: Colors.grey)
@@ -74,46 +83,44 @@ class _SignInState extends State<SignIn> {
                         borderSide: BorderSide(width: 2.0, color: Colors.orange)
                       ),
                     ),
-                    maxLength: 10,
-                    keyboardType: TextInputType.phone,
-                    validator: (val) => val!.isEmpty ? 'Please provide a valid phone number to login' : null,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (val) => val!.isEmpty ? 'Please provide an email id' : validateEmail(val),
                     onChanged: (val) {
-                      setState(() => phoneNo = val);
+                      setState(() => email = val);
                     }
                   ),
-                  // SizedBox(height: 20,),
-                  // TextFormField(
-                  //   decoration: InputDecoration(
-                  //     prefixIcon: Icon(Icons.vpn_key, color: Colors.orange,),
-                  //     labelText: 'password',
-                  //     labelStyle: GoogleFonts.openSans(color: Colors.green),
-                  //     border: OutlineInputBorder(
-                  //       borderRadius: BorderRadius.all(Radius.circular(25.0),),
-                  //       borderSide: BorderSide(color: Colors.grey)
-                  //     ),
-                  //     focusedBorder: OutlineInputBorder(
-                  //       borderRadius: BorderRadius.all(Radius.circular(25.0),),
-                  //       borderSide: BorderSide(width: 2.0, color: Colors.black45)
-                  //     ),
-                  //   ),
-                  //   keyboardType: TextInputType.text,
-                  //   obscureText: true,
-                  //   validator: (val) => val!.isEmpty ? 'Please provide a password' : null,
-                  //   onChanged: (val) {
-                  //     setState(() => password = val);
-                  //   }
-                  // ),
+                  SizedBox(height: 20,),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.vpn_key, color: Colors.orange,),
+                      labelText: 'password',
+                      labelStyle: GoogleFonts.openSans(color: Colors.green),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(25.0),),
+                        borderSide: BorderSide(color: Colors.grey)
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(25.0),),
+                        borderSide: BorderSide(width: 2.0, color: Colors.black45)
+                      ),
+                    ),
+                    keyboardType: TextInputType.text,
+                    obscureText: true,
+                    validator: (val) => val!.isEmpty ? 'Please provide a password' : null,
+                    onChanged: (val) {
+                      setState(() => pwd = val);
+                    }
+                  ),
                   SizedBox(height: 20),
                   ElevatedButton(
                     style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.orange,),),
                     child: Text('Sign In'),
                     onPressed: () async {
                       if(_formKey.currentState!.validate()){
-                        var chkphno = await _firestore.collection('users').where('phno', isEqualTo: '+91 '+phoneNo).get();
-                        if(chkphno.docs.length == 1){ 
+                        var chkemail = await _firestore.collection('users').where('email', isEqualTo: email).get();
+                        if(chkemail.docs.length == 1){ 
                           setState(() => loading = true);
-                          var inPhoneNo = '+91 '+ phoneNo.trim();
-                          verifyPhone(inPhoneNo);
+                          await AuthService().signInusingEmailPwd(email, pwd);
                         } else {displaySnackBar('Phone Number not registered. Please use SignUp.');}
                       }
                     },
@@ -143,38 +150,6 @@ class _SignInState extends State<SignIn> {
       )
     );
   }
-  Future<void> verifyPhone(phoneNo) async {
-    
-    final PhoneVerificationCompleted verified = (AuthCredential authResult) {
-      _auth.signIn(authResult);
-    };
-
-    final PhoneVerificationFailed verificationfailed =
-        (FirebaseAuthException authException) {
-      //print('${authException.message}');
-      displaySnackBar('Validation error, please try again later');
-    };
-
-    final void Function(String verId, [int? forceResend]) smsSent = (String verId, [int? forceResend]) async {
-      this.verificationId = verId;
-      //Navigator.pop(context);
-      await Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => OTP(verId, 'signin', '', '', '', '', '', '', '')));
-    };
-
-    final PhoneCodeAutoRetrievalTimeout autoTimeout = (String verId) {
-      this.verificationId = verId;
-    };
-
-    await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: phoneNo,
-        //timeout: const Duration(seconds: 5),
-        verificationCompleted: verified,
-        verificationFailed: verificationfailed,
-        codeSent: smsSent,
-        codeAutoRetrievalTimeout: autoTimeout);
-  }
-
   displaySnackBar(errtext) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(errtext),

@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:gogetapp/screens/auth/otp.dart';
 import 'package:gogetapp/screens/auth/signin.dart';
 import 'package:gogetapp/services/fire_auth.dart';
 import 'package:flutter/services.dart';
@@ -19,10 +17,9 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
   
-  late String phoneNo, uname, email, lat, long, usrType, verificationId, smsCode;
+  late String phoneNo, uname, email, lat, long, usrType, pwd;
   String address = '';
 
   int isSelected = 1;
@@ -68,16 +65,6 @@ class _SignUpState extends State<SignUp> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                  // height: 100.0,
-                  // width: 100.0,
-                  // decoration: BoxDecoration(
-                  //   image: DecorationImage(
-                  //     image: AssetImage(
-                  //         'assets/login_signup_screen_logo.png'),
-                  //     fit: BoxFit.fill,
-                  //   ),
-                  //   shape: BoxShape.rectangle,
-                  // ),
                   child: Text('SignUp', style: GoogleFonts.openSans(fontSize: 22.0, fontWeight: FontWeight.bold, color: Colors.black54 )),
                 ),
                 SizedBox(height: 50.0,),
@@ -108,7 +95,7 @@ class _SignUpState extends State<SignUp> {
                     SizedBox(height: 20),
                     TextFormField(
                       decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.mail, color: Colors.orange,),
+                        prefixIcon: Icon(Icons.alternate_email, color: Colors.orange,),
                         labelText: 'email',
                         labelStyle: GoogleFonts.openSans(color: Colors.black54,),
                         border: OutlineInputBorder(
@@ -125,6 +112,28 @@ class _SignUpState extends State<SignUp> {
                       validator: (val) => val!.isEmpty ? 'Please provide an email id' : validateEmail(val),
                       onChanged: (val) {
                         setState(() => email = val);
+                      }
+                    ),
+                    SizedBox(height: 20),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.vpn_key, color: Colors.orange,),
+                        labelText: 'password',
+                        labelStyle: GoogleFonts.openSans(color: Colors.black54,),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(25.0),),
+                          borderSide: BorderSide(color: Colors.grey)
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(25.0),),
+                          borderSide: BorderSide(width: 2.0, color: Colors.black45)
+                        ),
+                      ),
+                      obscureText: true,
+                      keyboardType: TextInputType.text,
+                      validator: (val) => val!.isEmpty ? 'Password cannot be blank' : null,
+                      onChanged: (val) {
+                        setState(() => pwd = val);
                       }
                     ),
                     SizedBox(height: 20,),
@@ -156,7 +165,7 @@ class _SignUpState extends State<SignUp> {
                     TextFormField(
                       decoration: InputDecoration(
                         prefixIcon: Icon(Icons.phone, color: Colors.orange,),
-                        labelText: 'Phone Number',
+                        labelText: 'mobile number',
                         labelStyle: GoogleFonts.openSans(color: Colors.black54,),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(25.0),),
@@ -169,7 +178,7 @@ class _SignUpState extends State<SignUp> {
                       ),
                       maxLength: 10,
                       keyboardType: TextInputType.phone,
-                      validator: (val) => val!.isEmpty ? 'Please provide a valid phone number to login' : null,
+                      validator: (val) => val!.isEmpty ? 'Please provide a valid mobile number to login' : null,
                       onChanged: (val) {
                         setState(() => phoneNo = val);
                       }
@@ -197,34 +206,28 @@ class _SignUpState extends State<SignUp> {
                       style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.orange,),),
                       child: Text('Register'),
                       onPressed: () async {
+                        
                         if(_formKey.currentState!.validate()){
-                          if(_currentPosition.latitude.isNaN){displaySnackBar('Please enable Location settings on your phone');} else {
-                            lat = _currentPosition.latitude.toString();
-                            long = _currentPosition.longitude.toString();
-                          }
                           var chkphno = await _firestore.collection('users').where('phno', isEqualTo: '+91 '+phoneNo).get();
-                          if(chkphno.docs.length == 0){                     
-                            var chkusrname = await _firestore.collection('users').where('usrname', isEqualTo: uname).get();
-                            var chkemail = await _firestore.collection('users').where('email', isEqualTo: email).get();
-                            if (chkusrname.docs.length == 0 && chkemail.docs.length == 0) { 
-                              if (toggleval == false) {usrType = 'Shopper';} else {usrType = 'Shop';}
-                              setState(() {
-                                loading = true;
-                              });
-                              var inPhoneNo = '+91 '+ phoneNo.trim();
-                              await verifyPhone(inPhoneNo);
+                          var chkemail = await _firestore.collection('users').where('email', isEqualTo: email).get();
+                          if(chkphno.docs.length == 0 && chkemail.docs.length == 0){   
+                            setState(() {
+                              loading = true;
+                            });
+                            if (toggleval == false) {usrType = 'Shopper';} else {usrType = 'Shop';}
+                            var inPhoneNo = '+91 '+ phoneNo.trim();
+                            var add = address == '' ? _currentAddress : address;
+                            await AuthService().signUpusingEmailPwd(uname, inPhoneNo, email, pwd, add, lat, long, usrType);
                             } else {
-                              if (chkusrname.docs.length > 0 && chkemail.docs.length > 0){
-                              displaySnackBar('username and email already in use');
-                              } else if (chkusrname.docs.length > 0) {
-                                displaySnackBar('username already in use');
-                              } else if (chkemail.docs.length > 0) {
-                                displaySnackBar('email already in use');
-                              }
+                              displaySnackBar('Provided values already exist in our database, please see if you can sign-in directly.');
                             }
-                          } else {displaySnackBar('Phone number already registered. Please use SignIn.');}
-                        }
-                      }
+                            setState(() {
+                              loading = false;
+                            });
+                          }else {displaySnackBar('All fields are mandatory');}
+                        } 
+                       
+                      
                     ),
                     TextButton(
                       child: Row(mainAxisAlignment: MainAxisAlignment.center,
@@ -249,37 +252,37 @@ class _SignUpState extends State<SignUp> {
       )
     );
   }
-  Future<void> verifyPhone(phoneNo) async {
+  // Future<void> verifyPhone(phoneNo) async {
     
-    final PhoneVerificationCompleted verified = (AuthCredential authResult) {
-      _auth.signIn(authResult);
-    };
+  //   final PhoneVerificationCompleted verified = (AuthCredential authResult) {
+  //     _auth.signIn(authResult);
+  //   };
 
-    final PhoneVerificationFailed verificationfailed =
-        (FirebaseAuthException authException) {
-      //print('${authException.message}');
-      displaySnackBar('Validation error, please try again later');
-    };
+  //   final PhoneVerificationFailed verificationfailed =
+  //       (FirebaseAuthException authException) {
+  //     //print('${authException.message}');
+  //     displaySnackBar('Validation error, please try again later');
+  //   };
 
-    final void Function(String verId, [int? forceResend]) smsSent = (String verId, [int? forceResend]) async {
-      this.verificationId = verId;
-      if (address == '') { address = _currentAddress;}
-      await Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => OTP(verId, 'signup', uname, phoneNo, email, address, lat, long, usrType)));           
-    };
+  //   final void Function(String verId, [int? forceResend]) smsSent = (String verId, [int? forceResend]) async {
+  //     this.verificationId = verId;
+  //     if (address == '') { address = _currentAddress;}
+  //     await Navigator.of(context).push(
+  //                     MaterialPageRoute(builder: (context) => OTP(verId, 'signup', uname, phoneNo, email, address, lat, long, usrType)));           
+  //   };
 
-    final PhoneCodeAutoRetrievalTimeout autoTimeout = (String verId) {
-      this.verificationId = verId;
-    };
+  //   final PhoneCodeAutoRetrievalTimeout autoTimeout = (String verId) {
+  //     this.verificationId = verId;
+  //   };
 
-    await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: phoneNo,
-        //timeout: const Duration(seconds: 5),
-        verificationCompleted: verified,
-        verificationFailed: verificationfailed,
-        codeSent: smsSent,
-        codeAutoRetrievalTimeout: autoTimeout);
-  }
+  //   await FirebaseAuth.instance.verifyPhoneNumber(
+  //       phoneNumber: phoneNo,
+  //       //timeout: const Duration(seconds: 5),
+  //       verificationCompleted: verified,
+  //       verificationFailed: verificationfailed,
+  //       codeSent: smsSent,
+  //       codeAutoRetrievalTimeout: autoTimeout);
+  // }
 
   displaySnackBar(errtext) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -303,6 +306,8 @@ class _SignUpState extends State<SignUp> {
       .then((Position position) {
     setState(() {
       _currentPosition = position;
+      lat = _currentPosition.latitude.toString();
+      long = _currentPosition.longitude.toString();
     });
     print(_currentPosition.latitude);
     print(_currentPosition.longitude);

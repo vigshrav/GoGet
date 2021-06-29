@@ -100,10 +100,14 @@ class _SearchNaddState extends State<SearchNadd> {
                       else return ListView(
                         children: snapshot.data!.docs.map(
                           (DocumentSnapshot document) {
+                            var imgAvble;
+                            if ((document.data() as dynamic)['imgURL'] != ''){imgAvble = 'YES';} else {imgAvble = 'NO';}
+
                             return Container(
-                              height: 49,
+                              // height: 49,
                               decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey),),),
                               child: ListTile(
+                                leading: imgAvble == 'NO' ? CircleAvatar(backgroundColor: Colors.grey, child: Icon(Icons.store),) : CircleAvatar(backgroundColor: Colors.grey, radius: 25.0, backgroundImage: NetworkImage((document.data() as dynamic)['imgURL']),),
                                 title: Text((document.data() as dynamic)['prodName'], overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.0),textAlign: TextAlign.left,),
                                 trailing: OutlinedButton.icon(icon: Icon(Icons.add_circle_outline), label: Text('Add to Store'), onPressed: () async {
                                   // *** CHECK IF PRODUCT ALREADY ADDED TO STORE
@@ -172,6 +176,7 @@ class _SearchNaddState extends State<SearchNadd> {
                                                       'prodName' : (document.data() as dynamic)['prodName'],
                                                       'price' : _price,
                                                       'stockCount' : _qty,
+                                                      'imgURL' : (document.data() as dynamic)['imgURL'],
                                                     });
                                                     setState(() { loading = false; });
                                                     Navigator.of(context).pop();

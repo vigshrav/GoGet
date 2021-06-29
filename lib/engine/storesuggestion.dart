@@ -16,6 +16,14 @@ storeSuggestions(context) async {
   double itemcost;
   var median;
 
+//**** DELETE PREVIOUS SUGGESTIONS */
+  await FirebaseFirestore.instance.collection('users').doc(usrID).collection('suggestions').get().then((allDocsSnap) async => {
+    for (DocumentSnapshot suggDocs in allDocsSnap.docs){
+      suggDocs.reference.delete(),
+    }
+  });
+
+
 //**** FETCH USER LOCATION */
   await FirebaseFirestore.instance.collection('users').doc(usrID).get().then((userDoc) => {
     if (userDoc.exists) {

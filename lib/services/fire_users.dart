@@ -31,5 +31,29 @@ class UserServices {
 
     }
 
+  Future addNewUser(uname, phno, email, address, lat, long, usrtype) async {
+    return await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      'usrname' : uname,
+      'phno' : phno,
+      'email' : email,
+      'address' : address,
+      'lat' : lat,
+      'long' : long,
+      'type' : usrtype
+    });
+  }
+
+  Future addNewStore(uname, phno, email, address, lat, long) async {
+    return await FirebaseFirestore.instance.collection('stores').doc(uid).set({
+      'storeName' : uname,
+      'phno' : phno,
+      'email' : email,
+      'address' : address,
+      'lat' : lat,
+      'long' : long,
+      'rating' : 0.0,
+      'createdDate' : now
+    });
+  }
 
 }

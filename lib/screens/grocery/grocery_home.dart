@@ -17,7 +17,7 @@ class ShopHome extends StatefulWidget {
 class _ShopHomeState extends State<ShopHome> {
 
   final user = FirebaseAuth.instance.currentUser;
-  var storeName = 'STORE NAME';
+  var storeName;
   var storePhno;
   var storeAdd;
 
@@ -27,40 +27,40 @@ class _ShopHomeState extends State<ShopHome> {
 
   @override
   void initState(){
+    FirebaseFirestore.instance.collection('stores').doc(user!.uid).get().then((doc) async => {
+        storeName = (doc.data() as dynamic) ['storeName'],
+        storePhno = (doc.data() as dynamic)['phno'],
+        storeAdd = (doc.data() as dynamic)['address'],
+    });
+    
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
 
-    getStoreName() async {
-      var store;
-      FutureBuilder(
-      future: FirebaseFirestore.instance.collection('stores').doc(user!.uid).get(),
-      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> doc) {
-        if( !doc.hasData ){
-          storeName = 'Store Name';
-          // print (storeName),
-          } else { 
-            storeName = (doc.data!.data() as dynamic) ['storeName'];
-            storePhno = (doc.data!.data() as dynamic)['phno'];
-            storeAdd = (doc.data!.data() as dynamic)['address'];
-            print (storeName);
-        }
-      return store;
-      });
-    }
+    getStoreName(){FirebaseFirestore.instance.collection('stores').doc(user!.uid).get().then((doc) async => {
+      
+          setState(() {
+            
+            storeName = (doc.data() as dynamic) ['storeName'];
+            storePhno = (doc.data() as dynamic)['phno'];
+            storeAdd = (doc.data() as dynamic)['address'];
+          
+          })
+       });}
+    
 
-    getStoreName(); 
+    getStoreName();
 
-      return loading ? Loading() : Scaffold(
+    return loading ? Loading() : Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.orange,
-          title: Text('Store Front'),
+          title: Text('$storeName'),
           centerTitle: true,
           actions: [
+            IconButton(onPressed: () async {storeEditDialog(storeName, storePhno, storeAdd); await getStoreName();}, icon: Icon(Icons.edit)),
             IconButton(onPressed: (){ AuthService().signOut(); }, icon: Icon(Icons.logout)),
-            // IconButton(onPressed: (){}, icon: Icon(Icons.power_settings_new))
           ],
         ),
         
@@ -75,20 +75,6 @@ class _ShopHomeState extends State<ShopHome> {
                   return Column(
                   children: [
                     Container(
-                      height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.05,
-                      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey),)),
-                      child: Row(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center, 
-                      children: [
-                        Text('$storeName', style: GoogleFonts.openSans(fontSize: 18, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis,),
-                        IconButton(onPressed: (){ 
-                          storeEditDialog(storeName, storePhno, storeAdd); 
-                          setState(() { });
-                          }, 
-                        icon: Icon(Icons.edit)
-                        )
-                      ],)
-                    ),
-                    Container(
                       padding: const EdgeInsets.fromLTRB(0.0, 0.0, 20.0, 0.0),
                       height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.05,
                       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey),)),
@@ -102,24 +88,12 @@ class _ShopHomeState extends State<ShopHome> {
                 return Column(
                   children: [
                     Container(
-                      height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.05,
-                      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey),)),
-                      child: Row(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center, 
-                      children: [
-                        Text('$storeName', style: GoogleFonts.openSans(fontSize: 18, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis,),
-                        IconButton(onPressed: (){ 
-                          storeEditDialog(storeName, storePhno, storeAdd); 
-                          setState(() { });
-                          }, 
-                        icon: Icon(Icons.edit))],)
-                    ),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(0.0, 0.0, 20.0, 0.0),
+                      padding: const EdgeInsets.fromLTRB(0.0, 0.0, 50.0, 0.0),
                       height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.05,
                       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey),)),
                       child: Row(
                       children: [
-                        Container(width: 260, child: Text('Product Name', overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),)),
+                        Container(width: 200, child: Text('Product Name', overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),)),
                         Expanded(child: Text('Qty', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),)),
                         Expanded(child: Text('Unit Price (\u{20B9})',textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),),)
                       ],)
@@ -131,23 +105,26 @@ class _ShopHomeState extends State<ShopHome> {
                             child: ListView(
                               children: snapshot.data!.docs.map(
                                 (DocumentSnapshot document) {
+                                  var imgAvble;
+                                  if ((document.data() as dynamic)['imgURL'] != ''){imgAvble = 'YES';} else {imgAvble = 'NO';}
                                   return Container(
                                     height: 60,
                                     decoration: BoxDecoration( 
                                       border: Border(bottom: BorderSide(color: Colors.grey),),
                                     ),
                                     child: ListTile(
-                                      leading: IconButton(icon: Icon(Icons.delete), onPressed: (){ displayDeleteConfirm('Delete this product : ${(document.data() as dynamic)['prodName']} ?', document.id); },),
+                                      leading: imgAvble == 'NO' ? CircleAvatar(backgroundColor: Colors.grey, child: Icon(Icons.store),) : CircleAvatar(backgroundColor: Colors.grey, radius: 25.0, backgroundImage: NetworkImage((document.data() as dynamic)['imgURL']),),
                                       title: Row(
                                         crossAxisAlignment: CrossAxisAlignment.center,
                                         mainAxisSize: MainAxisSize.max,
                                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                                         children: <Widget>[
-                                          Container(width: 180.0, child: Text((document.data() as dynamic)['prodName'], overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.0),textAlign: TextAlign.start,)),
+                                          Container(width: 130.0, child: Text((document.data() as dynamic)['prodName'], overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.0),textAlign: TextAlign.start,)),
                                           Expanded(child: Text((document.data() as dynamic)['stockCount'].toString(), overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.0),textAlign: TextAlign.center,)),
                                           Expanded(child: Text((document.data() as dynamic)['price'].toString(), overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.0),textAlign: TextAlign.center,)),
                                         ],
                                       ),
+                                      trailing: IconButton(icon: Icon(Icons.delete), onPressed: (){ displayDeleteConfirm('Delete this product : ${(document.data() as dynamic)['prodName']} ?', document.id); },),
                                       onTap: (){
                                         double _qty = 0.0; 
                                         double _price = 0.0;
@@ -197,6 +174,7 @@ class _ShopHomeState extends State<ShopHome> {
                                                         await FirebaseFirestore.instance.collection('stores').doc(user!.uid).collection('products').doc(document.id).update({
                                                           'price' : _price > 0.0 ? _price : (document.data() as dynamic)['price'],
                                                           'stockCount' : _qty > 0.0 ? _qty : (document.data() as dynamic)['stockCount'],
+                                                          // 'imgURL' : (document.data() as dynamic)['imgURL'],
                                                         });
                                                         setState(() { loading = false; });
                                                         Navigator.of(context).pop();

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gogetapp/engine/storesuggestion.dart';
+import 'package:gogetapp/widgets/spinner.dart';
 
 class ShoppingCart extends StatefulWidget {
   const ShoppingCart({ Key? key }) : super(key: key);
@@ -14,9 +15,11 @@ class _ShoppingCartState extends State<ShoppingCart> {
 
   User? user = FirebaseAuth.instance.currentUser;
 
+  bool loading = false;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return loading ? Loading() : Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.orange,
         title: Text('My Cart'),
@@ -35,16 +38,16 @@ class _ShoppingCartState extends State<ShoppingCart> {
                     children: snapshot.data!.docs.map(
                       (DocumentSnapshot document) {
                         return Container(
-                          height: 49,
+                          // height: 49,
                           decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey),),),
                           child: ListTile(
-                            title: Row( mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            title: Row( mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                Text((document.data() as dynamic)['prodname'], overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.0),textAlign: TextAlign.left,),
-                                Text('${(document.data() as dynamic)['qty']}', overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.0),textAlign: TextAlign.left,),
+                                Text((document.data() as dynamic)['prodname'], overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 18.0),textAlign: TextAlign.left,),
+                                Text('${(document.data() as dynamic)['qty']}', overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 18.0),textAlign: TextAlign.left,),
                               ],
                             ),
-                            leading: IconButton(icon: Icon(Icons.delete), onPressed: () async {
+                            trailing: IconButton(icon: Icon(Icons.delete), onPressed: () async {
                               await FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('cart').doc(document.id).delete();
                             }
                           ),
@@ -59,17 +62,17 @@ class _ShoppingCartState extends State<ShoppingCart> {
         ),
       ),
       bottomNavigationBar: BottomAppBar(
-        elevation: 0.0,
+        elevation: 15.0,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 30.0),
           child: ElevatedButton(
-            child: Text('Store Suggestions'), 
-            onPressed: (){ storeSuggestions(context); }, 
+            child: Text('Generate Recommendations', style:TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold)), 
+            onPressed: (){ loading = true; storeSuggestions(context); }, 
             style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all(Colors.orange),
               shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                 RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18.0),))
+                  borderRadius: BorderRadius.circular(5.0),))
               ),)),),
     );
   }

@@ -1,15 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gogetapp/screens/auth/signin.dart';
+import 'package:gogetapp/services/fire_users.dart';
 import 'package:gogetapp/widgets/wrapper.dart';
 
 class AuthService {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  //User? user = FirebaseAuth.instance.currentUser;
-
   handleAuth() {
     //print(user!.uid);
     return StreamBuilder(
@@ -30,74 +27,39 @@ class AuthService {
       });
   }
 
-  // sign in
-  Future signIn(AuthCredential creds) async {
+  // sign in with email/ pwd 
+  Future signInusingEmailPwd(String email, String pwd) async {
     try {
-      await FirebaseAuth.instance.signInWithCredential(creds);
-    } catch(e){
+      UserCredential result = await _auth.signInWithEmailAndPassword(email: email, password: pwd);
+      User? user = result.user;
+      print('signed-in successfully!!');
+      print(user!.uid);
+      return user.uid;
+    }catch(e) {
       print(e.toString());
+      print('login error please retry');
       return null;
     }
   }
 
-  // sign up
-  Future signUp(AuthCredential creds, uname, phno, email, type) async {
-    
-  }
-
-  // otp verification
-  signInWithOTP(smsCode, verId) async {
-    AuthCredential authCreds = PhoneAuthProvider.credential(verificationId: verId, smsCode: smsCode);
-    signIn(authCreds);
-  }
-
-  // otp verification
-  signUpWithOTP(smsCode, verId, uname, phno, email, address, lat, long, type) async {
+ // register with email/ pwd 
+  Future signUpusingEmailPwd(uname, phno, email, pwd, address, lat, long, usrtype) async {
     try {
-    AuthCredential authCreds = PhoneAuthProvider.credential(verificationId: verId, smsCode: smsCode);
-    
-      await FirebaseAuth.instance.signInWithCredential(authCreds).then((user) async => {
-        // ignore: unnecessary_null_comparison
-        if (user != null)
-          {
-          //store registration details in firestore database
-          await _firestore
-            .collection('users')
-            .doc(user.user!.uid)
-            .set({
-              'usrname': uname,
-              'phno': phno.toString().trim(),
-              'email': email,
-              'address': address,
-              'lat': lat,
-              'long': long,
-              'type': type
-            }),
-          },
-        if (type == 'Shop'){
-          await _firestore
-            .collection('stores')
-            .doc(user.user!.uid)
-            .set({
-              'storeName': 'Store Name',
-              'phno': phno.toString().trim(),
-              'email': email,
-              'address': address,
-              'lat': lat,
-              'long': long,
-              'rating' : 0.0,
-              'createdDate' : DateTime.now(),
-            }),
-          },  
-      });
-
-
-    } catch(e){
-      print(e.toString());
-      return null;
+      UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: pwd);
+        User? user = result.user;
+        
+        // create a new user with uid
+        await UserServices(uid: user!.uid).addNewUser(uname, phno, email, address, lat, long, usrtype);
+        if (usrtype == 'Shop'){
+          await UserServices(uid: user.uid).addNewStore(uname, phno, email, address, lat, long);
+        }
+      return user.uid;
+      }catch(e) {
+        print(e.toString());
+        print('reached signup error.. returning NULL');
+        return null;
+      }
     }
-  }
-
   // sign out
   Future signOut() async {
     try {
@@ -108,5 +70,4 @@ class AuthService {
       return null;
     }
   }
-
 }

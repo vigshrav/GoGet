@@ -32,6 +32,7 @@ dependencies:
   share:
   provider:
   flutter_rating_bar:
+  getwidget:
   
   ## GEO-LOCATORS
   geolocator:
