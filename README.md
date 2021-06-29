@@ -1,6 +1,6 @@
 # gogetapp
 
-Fiverr Project - GoGet - Local Grocery Listing App (Flutter with Firebase)
+Upworks Project - GoGet - Local Grocery Listing App (Flutter with Firebase)
 
 ## Getting Started
 
