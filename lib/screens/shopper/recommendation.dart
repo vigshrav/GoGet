@@ -18,7 +18,10 @@ class _RecommScreenState extends State<RecommScreen> {
 
   @override
   void initState() {
-    query = FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').where('availability', isGreaterThan: 0).orderBy('availability', descending : true).orderBy('score', descending : true).snapshots();
+    query = FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').
+    where('availability', isGreaterThan: 0).orderBy('availability', descending : true).
+    // where('distance', isLessThanOrEqualTo: 30).orderBy('distance', descending: true).
+    orderBy('score', descending : true).snapshots();
     super.initState();
   }
 
@@ -70,126 +73,131 @@ class _RecommScreenState extends State<RecommScreen> {
                           else return ListView(
                             children: snapshot.data!.docs.map(
                               (DocumentSnapshot document) {
+                                
                                 var stRating = (document.data() as dynamic)['rating'];
                                 var stAvailability = (document.data() as dynamic)['availability'];
-                                // print (stAvailability);
-                                if (stAvailability > 0){}
-                                return Container(
-                                  decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey),),),
-                                  child: ExpansionTile(
-                                    textColor: Colors.black,
-                                    collapsedTextColor: Colors.black,
-                                    title: Row( mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                var distance = (document.data() as dynamic)['distance'];
+                                var visibility = true;
+                                if (distance > 30){ visibility = false; } else { visibility = true; } 
+                                
+                                return Visibility(visible: visibility,
+                                  child: Container(
+                                    decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey),),),
+                                    child: ExpansionTile(
+                                      textColor: Colors.black,
+                                      collapsedTextColor: Colors.black,
+                                      title: Row( mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(child: Text((document.data() as dynamic)['storeName'], style: GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 14.0))),
+                                          Expanded(child: Text('${(document.data() as dynamic)['distance']} kms', textAlign: TextAlign.center, style: GoogleFonts.openSans(fontSize: 12.0))),
+                                          Expanded(child: Text('\u20B9 ${(document.data() as dynamic)['totalCost']}', textAlign: TextAlign.center, style: GoogleFonts.openSans(fontSize: 12.0))),
+                                        ],
+                                      ),
+                                      subtitle: Text('Items available: $stAvailability'),
                                       children: [
-                                        Expanded(child: Text((document.data() as dynamic)['storeName'], style: GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 14.0))),
-                                        Expanded(child: Text('${(document.data() as dynamic)['distance']} kms', textAlign: TextAlign.center, style: GoogleFonts.openSans(fontSize: 12.0))),
-                                        Expanded(child: Text('\u20B9 ${(document.data() as dynamic)['totalCost']}', textAlign: TextAlign.center, style: GoogleFonts.openSans(fontSize: 12.0))),
-                                      ],
-                                    ),
-                                    subtitle: Text('Items available: $stAvailability'),
-                                    children: [
-                                      Container(
-                                        width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)),
-                                        child: Column(
-                                          children: [
-                                            Row(mainAxisSize: MainAxisSize.max,
-                                              children: [
-                                                
-                                                Container(padding: EdgeInsets.only(left: 10.0),
-                                                  width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)) * 0.74,
-                                                  child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                                        Container(
+                                          width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)),
+                                          child: Column(
+                                            children: [
+                                              Row(mainAxisSize: MainAxisSize.max,
+                                                children: [
+                                                  
+                                                  Container(padding: EdgeInsets.only(left: 10.0),
+                                                    width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)) * 0.74,
+                                                    child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text('Address :', style: GoogleFonts.openSans(fontWeight: FontWeight.bold),),
+                                                        SizedBox(height: 5,),
+                                                        Text((document.data() as dynamic)['storeAdd'],),
+                                                        SizedBox(height: 5,),
+                                                        Row(
+                                                          children: [
+                                                            Icon(Icons.phone, size: 18.0,),
+                                                            SizedBox(width: 10.0,),
+                                                            Text((document.data() as dynamic)['storePhNo'],),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)) * 0.24,
+                                                    child:_showRating(stRating, document),
+                                                  )
+                                                ],
+                                              ),
+                                              Divider(color: Colors.grey,),
+                                              SingleChildScrollView(
+                                                child: Container(
+                                                  padding: const EdgeInsets.only(top: 5.0),
+                                                  height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.39,
+                                                  child: Column(
                                                     children: [
-                                                      Text('Address :', style: GoogleFonts.openSans(fontWeight: FontWeight.bold),),
-                                                      SizedBox(height: 5,),
-                                                      Text((document.data() as dynamic)['storeAdd'],),
-                                                      SizedBox(height: 5,),
-                                                      Row(
-                                                        children: [
-                                                          Icon(Icons.phone, size: 18.0,),
-                                                          SizedBox(width: 10.0,),
-                                                          Text((document.data() as dynamic)['storePhNo'],),
-                                                        ],
+                                                      Container(
+                                                      height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom)) * 0.04,
+                                                      width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)),
+                                                      // padding: const EdgeInsets.only(top: 25.0),
+                                                        child:Row(//mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                          children: [
+                                                            Container(
+                                                              width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.49,
+                                                              padding: EdgeInsets.only(right: 80),
+                                                              child: Text('Item'), alignment: Alignment.center,),
+                                                            Container(
+                                                              width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.2,
+                                                              child: Text('Unit Price'), alignment: Alignment.centerLeft,),
+                                                            Container(
+                                                              width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.2,
+                                                              padding: EdgeInsets.only(right: 50),
+                                                              child: Text('Qty'), alignment: Alignment.center,),
+                                                            Container(
+                                                              width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.11,
+                                                              child: Text('Cost'), alignment: Alignment.centerLeft,)
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)),
+                                                        height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.3,
+                                                        child: StreamBuilder(
+                                                          stream: document.reference.collection('prods').snapshots(),
+                                                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> prodsnapshot) {
+                                                            if( !prodsnapshot.hasData ){ return new Text('Loading...'); }
+                                                            else return ListView(
+                                                              children: prodsnapshot.data!.docs.map(
+                                                                (DocumentSnapshot proddocument) {
+                                                                  return ListTile(
+                                                                    title: Row(
+                                                                      children: [
+                                                                        Container(
+                                                                          width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.4,
+                                                                          child: Text((proddocument.data() as dynamic)['prodName'], style: GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 14.0)), alignment: Alignment.centerLeft),
+                                                                        Container(
+                                                                          width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.2,                                                                        child: Text('${(proddocument.data() as dynamic)['unitPrice']}', style: GoogleFonts.openSans(fontSize: 14.0)), alignment: Alignment.center),
+                                                                        Container(
+                                                                          width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.2,
+                                                                          child: Text('${(proddocument.data() as dynamic)['qty']}', style: GoogleFonts.openSans(fontSize: 14.0)), alignment: Alignment.center),
+                                                                        // Container(
+                                                                        //   width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.2,
+                                                                        //   child: Text('${(proddocument.data() as dynamic)['cost']}', style: GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 14.0)), alignment: Alignment.center),
+                                                                      ],
+                                                                    ),
+                                                                    trailing: Text('${(proddocument.data() as dynamic)['cost']}', style: GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 14.0)),
+                                                                  );
+                                                                }).toList(),
+                                                            );
+                                                          }
+                                                        ),
                                                       ),
                                                     ],
                                                   ),
                                                 ),
-                                                Container(
-                                                  width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)) * 0.24,
-                                                  child:_showRating(stRating, document),
-                                                )
-                                              ],
-                                            ),
-                                            Divider(color: Colors.grey,),
-                                            SingleChildScrollView(
-                                              child: Container(
-                                                padding: const EdgeInsets.only(top: 5.0),
-                                                height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.39,
-                                                child: Column(
-                                                  children: [
-                                                    Container(
-                                                    height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom)) * 0.04,
-                                                    width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)),
-                                                    // padding: const EdgeInsets.only(top: 25.0),
-                                                      child:Row(//mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                                        children: [
-                                                          Container(
-                                                            width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.49,
-                                                            padding: EdgeInsets.only(right: 80),
-                                                            child: Text('Item'), alignment: Alignment.center,),
-                                                          Container(
-                                                            width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.2,
-                                                            child: Text('Unit Price'), alignment: Alignment.centerLeft,),
-                                                          Container(
-                                                            width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.2,
-                                                            padding: EdgeInsets.only(right: 50),
-                                                            child: Text('Qty'), alignment: Alignment.center,),
-                                                          Container(
-                                                            width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.11,
-                                                            child: Text('Cost'), alignment: Alignment.centerLeft,)
-                                                        ],
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)),
-                                                      height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.3,
-                                                      child: StreamBuilder(
-                                                        stream: document.reference.collection('prods').snapshots(),
-                                                        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> prodsnapshot) {
-                                                          if( !prodsnapshot.hasData ){ return new Text('Loading...'); }
-                                                          else return ListView(
-                                                            children: prodsnapshot.data!.docs.map(
-                                                              (DocumentSnapshot proddocument) {
-                                                                return ListTile(
-                                                                  title: Row(
-                                                                    children: [
-                                                                      Container(
-                                                                        width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.4,
-                                                                        child: Text((proddocument.data() as dynamic)['prodName'], style: GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 14.0)), alignment: Alignment.centerLeft),
-                                                                      Container(
-                                                                        width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.2,                                                                        child: Text('${(proddocument.data() as dynamic)['unitPrice']}', style: GoogleFonts.openSans(fontSize: 14.0)), alignment: Alignment.center),
-                                                                      Container(
-                                                                        width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.2,
-                                                                        child: Text('${(proddocument.data() as dynamic)['qty']}', style: GoogleFonts.openSans(fontSize: 14.0)), alignment: Alignment.center),
-                                                                      // Container(
-                                                                      //   width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right))*0.2,
-                                                                      //   child: Text('${(proddocument.data() as dynamic)['cost']}', style: GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 14.0)), alignment: Alignment.center),
-                                                                    ],
-                                                                  ),
-                                                                  trailing: Text('${(proddocument.data() as dynamic)['cost']}', style: GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 14.0)),
-                                                                );
-                                                              }).toList(),
-                                                          );
-                                                        }
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),  
-                                          ],
-                                        ),
-                                      )
-                                    ],
+                                              ),  
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    ),
                                   ),
                                 );
                               }

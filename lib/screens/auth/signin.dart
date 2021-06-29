@@ -120,8 +120,15 @@ class _SignInState extends State<SignIn> {
                         var chkemail = await _firestore.collection('users').where('email', isEqualTo: email).get();
                         if(chkemail.docs.length == 1){ 
                           setState(() => loading = true);
-                          await AuthService().signInusingEmailPwd(email, pwd);
-                        } else {displaySnackBar('Phone Number not registered. Please use SignUp.');}
+                          dynamic result = await AuthService().signInusingEmailPwd(email, pwd);
+                          if (result != null) {
+                          setState(() {
+                            error = 'Sign-In error. Please retry with correct credentials.';
+                            loading = false;
+                          });
+                          print(error);
+                          } 
+                        } else {displaySnackBar('You are not yet registered with us.');}
                       }
                     },
                   ),

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gogetapp/engine/storesuggestion.dart';
+import 'package:gogetapp/screens/shopper/recommendation.dart';
 import 'package:gogetapp/widgets/spinner.dart';
 
 class ShoppingCart extends StatefulWidget {
@@ -41,7 +42,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
                           // height: 49,
                           decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey),),),
                           child: ListTile(
-                            title: Row( mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            title: Row( mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text((document.data() as dynamic)['prodname'], overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 18.0),textAlign: TextAlign.left,),
                                 Text('${(document.data() as dynamic)['qty']}', overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 18.0),textAlign: TextAlign.left,),
@@ -67,7 +68,12 @@ class _ShoppingCartState extends State<ShoppingCart> {
           padding: EdgeInsets.symmetric(horizontal: 30.0),
           child: ElevatedButton(
             child: Text('Generate Recommendations', style:TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold)), 
-            onPressed: (){ loading = true; storeSuggestions(context); }, 
+            onPressed: () async { 
+                setState(() {loading = true; });
+               await storeSuggestions(context); 
+               setState(() {loading = false; });
+               await Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => RecommScreen()));
+               }, 
             style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all(Colors.orange),
               shape: MaterialStateProperty.all<RoundedRectangleBorder>(

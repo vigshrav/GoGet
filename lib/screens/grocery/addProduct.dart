@@ -144,6 +144,8 @@ class _AddProductSellerState extends State<AddProductSeller> {
                     style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.orange),),
                     child: Text('Add Product'),
                     onPressed: () async {
+                      if (avatarImgURL != '') {
+                      if(_formKey.currentState!.validate()){
                       setState(() {
                         loading = true;
                       });
@@ -161,6 +163,7 @@ class _AddProductSellerState extends State<AddProductSeller> {
                         'imgURL' : avatarImgURL
                       });
                       Navigator.of(context).pop();
+                    }} else {displaySnackBar('All fields are mandatory');}
                     }
                   ),
                 ]),

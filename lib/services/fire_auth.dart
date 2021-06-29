@@ -7,6 +7,7 @@ import 'package:gogetapp/widgets/wrapper.dart';
 class AuthService {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  
   handleAuth() {
     //print(user!.uid);
     return StreamBuilder(
@@ -34,11 +35,11 @@ class AuthService {
       User? user = result.user;
       print('signed-in successfully!!');
       print(user!.uid);
-      return user.uid;
+      // return user.uid;
     }catch(e) {
       print(e.toString());
       print('login error please retry');
-      return null;
+      return e;
     }
   }
 
@@ -53,11 +54,11 @@ class AuthService {
         if (usrtype == 'Shop'){
           await UserServices(uid: user.uid).addNewStore(uname, phno, email, address, lat, long);
         }
-      return user.uid;
+      // return user.uid;
       }catch(e) {
         print(e.toString());
         print('reached signup error.. returning NULL');
-        return null;
+        return e;
       }
     }
   // sign out

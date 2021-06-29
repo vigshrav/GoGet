@@ -35,6 +35,7 @@ storeSuggestions(context) async {
 //**** FETCH ALL PRODUCTS FROM USER CART */
   await FirebaseFirestore.instance.collection('users').doc(usrID).collection('cart').get().then((cartSnapShot) async => {
     if (cartSnapShot.docs.length > 0){
+      // print('cart length = ${cartSnapShot.docs.length}'),
       for (DocumentSnapshot cartProduct in cartSnapShot.docs){
         cartItemsList.add(
           cartItems(
@@ -63,6 +64,8 @@ storeSuggestions(context) async {
   int stCount;
   double X;
   double score;
+  // var cCount = 0;
+  // var sCount = 0;
 
 //**** FETCH ALL STORES FROM STORE TABLE */  
   await FirebaseFirestore.instance.collection('stores').get().then((storeSnapshot) async => {
@@ -70,6 +73,8 @@ storeSuggestions(context) async {
       for (DocumentSnapshot storeDoc in storeSnapshot.docs) {
         itemsMatched = 0,
         totalCost = 0.0,
+        // cCount = 0,
+        // sCount = 0,
         storeProdList.clear(),
         unavailable.clear(),
         unavailableCount = 0,
@@ -101,13 +106,14 @@ storeSuggestions(context) async {
               }
             }
           }),
-          
+            for(storeProd sItem in storeProdList){
             for(cartItems cItem in cartItemsList){
-              // print('cart: ${cItem.itemid}'),
-              for(storeProd sItem in storeProdList){
+              
                 itemcost = 0,
-              // print('store: ${sItem.itemid}'),
               if (cItem.itemid == sItem.itemid) {
+                print ('Cart: ${cItem.itemid}'),
+                print ('Shop: ${sItem.itemid}'),
+                print ('Shop: ${sItem.prodName}'),
                 itemsMatched = itemsMatched+1,
                 itemcost = (cItem.qty) * (sItem.cost),
                 totalCost = totalCost + itemcost,
@@ -117,7 +123,7 @@ storeSuggestions(context) async {
                   'unitPrice' : sItem.cost,
                   'cost' : itemcost
                 }),
-              }
+              } else {unavailableCount = unavailableCount + 1, print(unavailableCount)}
             },
           },
           await FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').doc(storeID).set({
@@ -166,7 +172,7 @@ storeSuggestions(context) async {
     }
   });
 
-  Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => RecommScreen()));
+return (Text('Done'));  
 
 }
 

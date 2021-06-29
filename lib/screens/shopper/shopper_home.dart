@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:getwidget/components/avatar/gf_avatar.dart';
-import 'package:getwidget/components/list_tile/gf_list_tile.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:gogetapp/screens/shopper/cart.dart';
 import 'package:gogetapp/services/fire_auth.dart';
@@ -98,7 +97,7 @@ class _ShopperHomeState extends State<ShopperHome> {
                         children: snapshot.data!.docs.map(
                           (DocumentSnapshot document) {
                             
-                            var imgAvbl = (document.data() as dynamic)['prodName'] != '' ? 'YES' : 'NO';
+                            var imgAvbl = (document.data() as dynamic)['imgURL'] != '' ? 'YES' : 'NO';
                             return Container(
                               // decoration: new BoxDecoration(
                               //   boxShadow: [
