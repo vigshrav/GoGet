@@ -73,7 +73,22 @@ class AuthService {
               'long': long,
               'type': type
             }),
-          }
+          },
+        if (type == 'Shop'){
+          await _firestore
+            .collection('stores')
+            .doc(user.user!.uid)
+            .set({
+              'storeName': 'Store Name',
+              'phno': phno.toString().trim(),
+              'email': email,
+              'address': address,
+              'lat': lat,
+              'long': long,
+              'rating' : 0.0,
+              'createdDate' : DateTime.now(),
+            }),
+          },  
       });
 
 

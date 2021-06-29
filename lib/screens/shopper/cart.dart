@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:gogetapp/engine/storesuggestion.dart';
 
 class ShoppingCart extends StatefulWidget {
   const ShoppingCart({ Key? key }) : super(key: key);
@@ -37,9 +38,14 @@ class _ShoppingCartState extends State<ShoppingCart> {
                           height: 49,
                           decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey),),),
                           child: ListTile(
-                            title: Text((document.data() as dynamic)['prodname'], overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.0),textAlign: TextAlign.left,),
-                            trailing: IconButton(icon: Icon(Icons.delete), onPressed: () async {
-
+                            title: Row( mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text((document.data() as dynamic)['prodname'], overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.0),textAlign: TextAlign.left,),
+                                Text('${(document.data() as dynamic)['qty']}', overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13.0),textAlign: TextAlign.left,),
+                              ],
+                            ),
+                            leading: IconButton(icon: Icon(Icons.delete), onPressed: () async {
+                              await FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('cart').doc(document.id).delete();
                             }
                           ),
                         ),
@@ -58,7 +64,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
           padding: EdgeInsets.symmetric(horizontal: 30.0),
           child: ElevatedButton(
             child: Text('Store Suggestions'), 
-            onPressed: (){}, 
+            onPressed: (){ storeSuggestions(context); }, 
             style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all(Colors.orange),
               shape: MaterialStateProperty.all<RoundedRectangleBorder>(

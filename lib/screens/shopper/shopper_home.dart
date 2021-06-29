@@ -113,16 +113,57 @@ class _ShopperHomeState extends State<ShopperHome> {
                                   // print(prodCount);
                                   if (prodCount > 0) { displayAlert('Item already in your cart'); textfieldController.clear(); setState(() { _searchText = ''; }); FocusScope.of(context).unfocus(); }
                                   else {
-                                    await FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('cart').doc(document.id).set({
-                                      'prodname' : (document.data() as dynamic)['prodName']
-                                    });
-                                    textfieldController.clear();
-                                    FocusScope.of(context).unfocus();
-                                    setState(() { _searchText = ''; });
+                                    double _qty = 0.0; 
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return Dialog(
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+                                          elevation: 16,
+                                          child: Container(height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.35,
+                                            child: Column(
+                                              children: <Widget>[
+                                                SizedBox(height: 10),
+                                                Center(child: Text((document.data() as dynamic)['prodName'], style: GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 20.0))),
+                                                SizedBox(height: 10),
+                                                Padding(padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                                                child: Column(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center,
+                                                  children: <Widget>[
+                                                    SizedBox(height: 0),
+                                                    Container(height: 2, color: Colors.redAccent),
+                                                    SizedBox(height: 10),
+                                                    Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                      children: <Widget>[
+
+                                                        Text('Quantity :', textAlign: TextAlign.center, style: GoogleFonts.openSans(fontWeight: FontWeight.bold)),           
+                                                        Container(width: 80.0, child: TextField(keyboardType: TextInputType.number, decoration: InputDecoration(labelText: '0.0'), onChanged: (val) => _qty = double.parse(val),)),
+
+                                                      ],
+                                                    ),
+                                                    SizedBox(height: 10,),
+                                                    SizedBox(height: 10,),
+                                                ElevatedButton(child: Text('Done'), style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.orange)),
+                                                onPressed: () async { 
+                                                  await FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('cart').doc(document.id).set({
+                                                    'prodname' : (document.data() as dynamic)['prodName'],
+                                                    'qty' : _qty,
+                                                  });
+                                                  textfieldController.clear();
+                                                  FocusScope.of(context).unfocus();
+                                                  setState(() { _searchText = ''; });
+                                                  Navigator.of(context).pop();
+                                                  displayAlert('Item added to cart!');
+                                                  }
+                                                )
+                                              ])
+                                            )
+                                          ])
+                                        )
+                                      );
+                                });                                
                                   }
-                                }),                                
-                              )
-                            );
+                                })
+                            ));
                           }
                         ).toList(),
                       );

@@ -42,19 +42,6 @@ class _OTPState extends State<OTP> {
             Form(key: _formKey,
               child: Column(
                 children: [
-                  Container(
-                // height: 100.0,
-                // width: 100.0,
-                // decoration: BoxDecoration(
-                //   image: DecorationImage(
-                //     image: AssetImage(
-                //         'assets/login_signup_screen_logo.png'),
-                //     fit: BoxFit.fill,
-                //   ),
-                //   shape: BoxShape.rectangle,
-                // ),
-                //child: Text('Enter OTP', style: GoogleFonts.openSans(fontSize: 22.0, fontWeight: FontWeight.bold, color: Colors.black54 )),
-              ),
               SizedBox(height: 50.0,),
                   TextFormField(
                     decoration: InputDecoration(
@@ -71,33 +58,11 @@ class _OTPState extends State<OTP> {
                       ),
                     ),
                     keyboardType: TextInputType.phone,
-                    validator: (val) => val!.isEmpty ? 'Please OTP sent to your phone' : null,
+                    validator: (val) => val!.isEmpty ? 'Please enter OTP received via SMS' : null,
                     onChanged: (val) {
                       setState(() => otpkey = val);
                     }
                   ),
-                  // SizedBox(height: 20,),
-                  // TextFormField(
-                  //   decoration: InputDecoration(
-                  //     prefixIcon: Icon(Icons.vpn_key, color: Colors.orange,),
-                  //     labelText: 'password',
-                  //     labelStyle: GoogleFonts.openSans(color: Colors.green),
-                  //     border: OutlineInputBorder(
-                  //       borderRadius: BorderRadius.all(Radius.circular(25.0),),
-                  //       borderSide: BorderSide(color: Colors.grey)
-                  //     ),
-                  //     focusedBorder: OutlineInputBorder(
-                  //       borderRadius: BorderRadius.all(Radius.circular(25.0),),
-                  //       borderSide: BorderSide(width: 2.0, color: Colors.black45)
-                  //     ),
-                  //   ),
-                  //   keyboardType: TextInputType.text,
-                  //   obscureText: true,
-                  //   validator: (val) => val!.isEmpty ? 'Please provide a password' : null,
-                  //   onChanged: (val) {
-                  //     setState(() => password = val);
-                  //   }
-                  // ),
                   Text('$error', style: TextStyle(color: Colors.red)),
                   SizedBox(height: 20),
                   ElevatedButton(
@@ -107,12 +72,14 @@ class _OTPState extends State<OTP> {
                       // setState(() {
                       //   loading = true;
                       // });
-                      if (widget.type == 'signin') {
-                        await AuthService().signInWithOTP(otpkey, widget.verID);
-                        Navigator.of(context).popUntil((route) => route.isFirst);
-                      } else {
-                        await AuthService().signUpWithOTP(otpkey, widget.verID, widget.uname, widget.phno, widget.email, widget.address, widget.lat, widget.long, widget.usrtype);
-                        Navigator.of(context).popUntil((route) => route.isFirst);
+                      if(_formKey.currentState!.validate()){
+                        if (widget.type == 'signin') {
+                          await AuthService().signInWithOTP(otpkey, widget.verID);
+                          Navigator.of(context).popUntil((route) => route.isFirst);
+                        } else {
+                          await AuthService().signUpWithOTP(otpkey, widget.verID, widget.uname, widget.phno, widget.email, widget.address, widget.lat, widget.long, widget.usrtype);
+                          Navigator.of(context).popUntil((route) => route.isFirst);
+                        }
                       }
                     }
                   ),

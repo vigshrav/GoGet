@@ -89,7 +89,14 @@ class _SearchNaddState extends State<SearchNadd> {
                     stream: searchQuery,
                     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                       if( !snapshot.hasData ){ return new Text('Loading...'); }
-                      else if( snapshot.data!.docs.length == 0) { return new TextButton(child: Text('No products found. Click here to manually?'), onPressed: () {Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => AddProductSeller(),));});}
+                      else if( snapshot.data!.docs.length == 0) { return new TextButton(child: Text('No products found. Click here to manually?'), onPressed: () {
+                        textfieldController.clear();
+                        FocusScope.of(context).unfocus();
+                        setState(() { _searchText = ''; });
+                        
+                        Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => AddProductSeller(),));
+                        
+                      });}
                       else return ListView(
                         children: snapshot.data!.docs.map(
                           (DocumentSnapshot document) {

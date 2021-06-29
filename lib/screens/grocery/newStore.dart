@@ -76,6 +76,7 @@ class _AddNewStoreState extends State<AddNewStore> {
                       await FirebaseFirestore.instance.collection('stores').doc(user!.uid).set({
                         'storename' : _storename,
                         'createdDt' : DateTime.now(),
+                        'rating' : 0.0,
                       });
                       Navigator.of(context).pop();
                     }

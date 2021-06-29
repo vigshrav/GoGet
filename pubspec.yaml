@@ -31,8 +31,12 @@ dependencies:
   page_transition:
   share:
   provider:
+  flutter_rating_bar:
+  
+  ## GEO-LOCATORS
   geolocator:
   geocoding:
+  
 
   ## FIREBASE LIBS  
   firebase_core:
