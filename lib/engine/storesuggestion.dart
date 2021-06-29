@@ -46,6 +46,9 @@ storeSuggestions(context) async {
   var storeLong;
   var distanceInMtrs;
   List storeProdList = [];
+  var unavailable = [];
+  int unavailableCount= 0;
+  int itemsMatched = 0;
   double totalCost;
   double storeRating;
   double totPrice;
@@ -57,8 +60,11 @@ storeSuggestions(context) async {
   await FirebaseFirestore.instance.collection('stores').get().then((storeSnapshot) async => {
     if (storeSnapshot.docs.length > 0) {
       for (DocumentSnapshot storeDoc in storeSnapshot.docs) {
+        itemsMatched = 0,
         totalCost = 0.0,
         storeProdList.clear(),
+        unavailable.clear(),
+        unavailableCount = 0,
         storeID = storeDoc.id,
         storeName = (storeDoc.data() as dynamic)['storeName'],
         storeRating = (storeDoc.data() as dynamic)['rating'],
@@ -89,11 +95,12 @@ storeSuggestions(context) async {
           }),
           
             for(cartItems cItem in cartItemsList){
-            print('cart: ${cItem.itemid}'),
+              // print('cart: ${cItem.itemid}'),
               for(storeProd sItem in storeProdList){
                 itemcost = 0,
-              print('store: ${sItem.itemid}'),
+              // print('store: ${sItem.itemid}'),
               if (cItem.itemid == sItem.itemid) {
+                itemsMatched = itemsMatched+1,
                 itemcost = (cItem.qty) * (sItem.cost),
                 totalCost = totalCost + itemcost,
                 await FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').doc(storeID).collection('prods').doc(cItem.itemid).set({
@@ -103,7 +110,7 @@ storeSuggestions(context) async {
                   'cost' : itemcost
                 }),
               }
-            }
+            },
           },
           await FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').doc(storeID).set({
             'storeName': storeName,
@@ -112,6 +119,7 @@ storeSuggestions(context) async {
             'rating' : storeRating,
             'distance' : distanceInMtrs,
             'totalCost' : totalCost,
+            'availability' : itemsMatched,
           }),
           totPriceList.add(totalCost),
           // print(totPriceList),
@@ -125,14 +133,14 @@ storeSuggestions(context) async {
   stCount = totPriceList.length;
   //*** IF EVEN */
   if (stCount.isOdd && stCount > 2){
-    print ('count is ODD');
-    median = totPriceList[((stCount+1)~/2)+1];
-    print(median);
+    // print ('count is ODD');
+    median = totPriceList[((stCount)~/2)+1];
+    // print(median);
   }
   else if (stCount.isEven){
-    print ('count is EVEN');
+    // print ('count is EVEN');
     median = ((totPriceList[(stCount~/2)-1]) + (totPriceList[(stCount~/2)]))/2;
-    print(median);
+    // print(median);
   } 
 
 // CALCULATE FOR X FOR EACH STORE IN SUGGESTIONS
@@ -146,7 +154,7 @@ storeSuggestions(context) async {
 
 // CALCULATE FOR FINAL SCORE
       score = (storeRating * 20) + X,
-      await sDoc.reference.update({ 'median' : median, 'X' : X, 'score' : score})
+      await sDoc.reference.update({ 'median' : median, 'X' : X, 'score' : score,})
     }
   });
 

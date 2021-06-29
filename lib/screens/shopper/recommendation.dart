@@ -14,16 +14,28 @@ class RecommScreen extends StatefulWidget {
 class _RecommScreenState extends State<RecommScreen> {
 
   User? user = FirebaseAuth.instance.currentUser;
+  var query;
+
+  @override
+  void initState() {
+    query = FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').where('availability', isGreaterThan: 0).orderBy('availability', descending : true).orderBy('score', descending : true).snapshots();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    double stRating;
+
+    // var query = FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').where('availability', isGreaterThan: 0).orderBy('availability', descending : true).orderBy('score', descending : true).snapshots();
+    
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: Colors.orange,
         title: Text('Store Recommendations'),
         centerTitle: true,
+        actions: [
+          IconButton(onPressed: (){_showSortDialog();}, icon: Icon(Icons.sort_sharp))
+        ],
       ),
 
       body: SingleChildScrollView(
@@ -52,13 +64,16 @@ class _RecommScreenState extends State<RecommScreen> {
                     Container(
                       height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.86,
                       child: StreamBuilder(
-                      stream: FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').orderBy('score').snapshots(),
+                      stream: query, //FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').where('availability', isGreaterThan: 0).orderBy('availability', descending : true).orderBy('score', descending : true).snapshots(),
                         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                           if( !snapshot.hasData ){ return new Text('Loading...'); }
                           else return ListView(
                             children: snapshot.data!.docs.map(
                               (DocumentSnapshot document) {
                                 var stRating = (document.data() as dynamic)['rating'];
+                                var stAvailability = (document.data() as dynamic)['availability'];
+                                // print (stAvailability);
+                                if (stAvailability > 0){}
                                 return Container(
                                   decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey),),),
                                   child: ExpansionTile(
@@ -71,12 +86,7 @@ class _RecommScreenState extends State<RecommScreen> {
                                         Expanded(child: Text('\u20B9 ${(document.data() as dynamic)['totalCost']}', textAlign: TextAlign.center, style: GoogleFonts.openSans(fontSize: 12.0))),
                                       ],
                                     ),
-                                    // subtitle: Column(mainAxisAlignment: MainAxisAlignment.start, mainAxisSize: MainAxisSize.max, crossAxisAlignment: CrossAxisAlignment.start,
-                                    //   children: [
-                                    //     Text((document.data() as dynamic)['storeAdd'],),
-                                    //     Text((document.data() as dynamic)['storePhNo'],)
-                                    //   ],
-                                    // ),
+                                    subtitle: Text('Items available: $stAvailability'),
                                     children: [
                                       Container(
                                         width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)),
@@ -105,15 +115,15 @@ class _RecommScreenState extends State<RecommScreen> {
                                                 ),
                                                 Container(
                                                   width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)) * 0.25,
-                                                  child:_showRating(stRating)),
-
+                                                  child:_showRating(stRating, document),
+                                                ),
                                               ],
                                             ),
                                             Divider(color: Colors.grey,),
                                             SingleChildScrollView(
                                               child: Container(
                                                 padding: const EdgeInsets.only(top: 5.0),
-                                                height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.5,
+                                                height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.4,
                                                 child: Column(
                                                   children: [
                                                     Container(
@@ -141,7 +151,7 @@ class _RecommScreenState extends State<RecommScreen> {
                                                     ),
                                                     Container(
                                                       width: (MediaQuery.of(context).size.width - (MediaQuery.of(context).padding.left + MediaQuery.of(context).padding.right)),
-                                                      height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.4,
+                                                      height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.3,
                                                       child: StreamBuilder(
                                                         stream: document.reference.collection('prods').snapshots(),
                                                         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> prodsnapshot) {
@@ -171,7 +181,7 @@ class _RecommScreenState extends State<RecommScreen> {
                                                           );
                                                         }
                                                       ),
-                                                    )
+                                                    ),
                                                   ],
                                                 ),
                                               ),
@@ -196,7 +206,7 @@ class _RecommScreenState extends State<RecommScreen> {
       ),
     );        
   }
-  _showRating(double rating){
+  _showRating(double rating, doc){
     return RatingBar.builder(
       initialRating: rating,
       minRating: 0,
@@ -208,9 +218,51 @@ class _RecommScreenState extends State<RecommScreen> {
         Icons.star,
         color: Colors.amber,
       ),
-      onRatingUpdate: (rating) {
-        print(rating);
+      onRatingUpdate: (newrating) async {
+        setState(() {
+          rating = (rating + newrating)/2;
+        });
+        await FirebaseFirestore.instance.collection('stores').doc(doc.id).update({
+          'rating': rating,
+        });
+        await FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').doc(doc.id).update({
+          'rating': rating,
+        });
       },
     );
+  }
+
+  _showSortDialog(){
+      showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+          elevation: 16,
+          child: Container(height: (MediaQuery.of(context).size.height - (MediaQuery.of(context).padding.top + MediaQuery.of(context).padding.bottom))*0.28,
+            child: Column(
+              children: <Widget>[
+                SizedBox(height: 30),
+                Center(child: Text('Sort By', style: GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 20.0))),
+                SizedBox(height: 10),
+                Padding(padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                  child: Column(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      SizedBox(height: 0),
+                      Container(height: 2, color: Colors.redAccent),
+                      SizedBox(height: 20),
+                      TextButton(child: Text('GoGet Recommendations', style: GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 16.0)), onPressed: (){
+                        setState(() { query = FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').where('availability', isGreaterThan: 0).orderBy('availability', descending : true).orderBy('score', descending : true).snapshots(); });
+                        Navigator.of(context).pop();
+                      },),
+                      SizedBox(height: 5,),
+                      TextButton(child: Text('Distance', style: GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 16.0)), onPressed: (){
+                        setState(() { query = FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').where('availability', isGreaterThan: 0).orderBy('availability', descending : true).orderBy('distance', descending : false).snapshots(); });
+                        Navigator.of(context).pop();
+                      },),
+          ])),]))
+          );
+      });
+
   }
 }
