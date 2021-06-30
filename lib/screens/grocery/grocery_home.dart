@@ -16,7 +16,8 @@ class ShopHome extends StatefulWidget {
 
 class _ShopHomeState extends State<ShopHome> {
 
-  final user = FirebaseAuth.instance.currentUser;
+  final User? user = FirebaseAuth.instance.currentUser;
+  
   var storeName;
   var storePhno;
   var storeAdd;
@@ -32,7 +33,7 @@ class _ShopHomeState extends State<ShopHome> {
         storePhno = (doc.data() as dynamic)['phno'],
         storeAdd = (doc.data() as dynamic)['address'],
     });
-    
+    // displayAlert('Welcome $user!');
     super.initState();
   }
 
@@ -60,7 +61,7 @@ class _ShopHomeState extends State<ShopHome> {
           centerTitle: true,
           actions: [
             IconButton(onPressed: () async {storeEditDialog(storeName, storePhno, storeAdd); await getStoreName();}, icon: Icon(Icons.edit)),
-            IconButton(onPressed: (){ AuthService().signOut(); }, icon: Icon(Icons.logout)),
+            IconButton(onPressed: () async { AuthService().signOut(); }, icon: Icon(Icons.logout)),
           ],
         ),
         

@@ -70,7 +70,7 @@ class _ShoppingCartState extends State<ShoppingCart> {
             child: Text('Generate Recommendations', style:TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold)), 
             onPressed: () async { 
                 setState(() {loading = true; });
-               await storeSuggestions(context); 
+               await storeSuggestions(context, user!.uid); 
                setState(() {loading = false; });
                await Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => RecommScreen()));
                }, 

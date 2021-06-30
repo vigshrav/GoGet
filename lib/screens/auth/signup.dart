@@ -217,7 +217,8 @@ class _SignUpState extends State<SignUp> {
                             if (toggleval == false) {usrType = 'Shopper';} else {usrType = 'Shop';}
                             var inPhoneNo = '+91 '+ phoneNo.trim();
                             var add = address == '' ? _currentAddress : address;
-                            await AuthService().signUpusingEmailPwd(uname, inPhoneNo, email, pwd, add, lat, long, usrType);
+                            var result = await AuthService().signUpusingEmailPwd(uname, inPhoneNo, email, pwd, add, lat, long, usrType);
+                            if (result != null){displaySnackBar(result.toString());}
                             } else {
                               displaySnackBar('Provided values already exist in our database, please see if you can sign-in directly.');
                             }

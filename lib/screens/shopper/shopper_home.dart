@@ -23,7 +23,13 @@ class _ShopperHomeState extends State<ShopperHome> {
 
   final textfieldController = TextEditingController();
 
-  User? user = FirebaseAuth.instance.currentUser;
+  final User? user = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState(){
+    // displayAlert('Welcome $user!');
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +53,7 @@ class _ShopperHomeState extends State<ShopperHome> {
         actions: [
           
           IconButton(onPressed: (){ Navigator.of(context).push(MaterialPageRoute(builder: (BuildContext context) => ShoppingCart())); }, icon: Icon(Icons.shopping_basket_outlined)),
-          IconButton(onPressed: (){ AuthService().signOut(); }, icon: Icon(Icons.logout)),
+          IconButton(onPressed: () async { AuthService().signOut(); }, icon: Icon(Icons.logout)),
 
         ],
         shadowColor: Colors.orange,

@@ -2,13 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:gogetapp/screens/shopper/recommendation.dart';
 
-User? user = FirebaseAuth.instance.currentUser;
+// final User? user = FirebaseAuth.instance.currentUser;
 
-storeSuggestions(context) async {
+storeSuggestions(context, currUser) async {
   
-  var usrID = user!.uid;
+  // var usrID = user!.uid;
   var usrLat;
   var usrLong;
   List cartItemsList = [];
@@ -17,7 +16,7 @@ storeSuggestions(context) async {
   var median;
 
 //**** DELETE PREVIOUS SUGGESTIONS */
-  await FirebaseFirestore.instance.collection('users').doc(usrID).collection('suggestions').get().then((allDocsSnap) async => {
+  await FirebaseFirestore.instance.collection('users').doc(currUser).collection('suggestions').get().then((allDocsSnap) async => {
     for (DocumentSnapshot suggDocs in allDocsSnap.docs){
       suggDocs.reference.delete(),
     }
@@ -25,7 +24,7 @@ storeSuggestions(context) async {
 
 
 //**** FETCH USER LOCATION */
-  await FirebaseFirestore.instance.collection('users').doc(usrID).get().then((userDoc) => {
+  await FirebaseFirestore.instance.collection('users').doc(currUser).get().then((userDoc) => {
     if (userDoc.exists) {
       usrLat = double.parse((userDoc.data() as dynamic)['lat']),
       usrLong = double.parse((userDoc.data() as dynamic)['long'])
@@ -33,7 +32,7 @@ storeSuggestions(context) async {
   });
 
 //**** FETCH ALL PRODUCTS FROM USER CART */
-  await FirebaseFirestore.instance.collection('users').doc(usrID).collection('cart').get().then((cartSnapShot) async => {
+  await FirebaseFirestore.instance.collection('users').doc(currUser).collection('cart').get().then((cartSnapShot) async => {
     if (cartSnapShot.docs.length > 0){
       // print('cart length = ${cartSnapShot.docs.length}'),
       for (DocumentSnapshot cartProduct in cartSnapShot.docs){
@@ -117,7 +116,7 @@ storeSuggestions(context) async {
                 itemsMatched = itemsMatched+1,
                 itemcost = (cItem.qty) * (sItem.cost),
                 totalCost = totalCost + itemcost,
-                await FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').doc(storeID).collection('prods').doc(cItem.itemid).set({
+                await FirebaseFirestore.instance.collection('users').doc(currUser).collection('suggestions').doc(storeID).collection('prods').doc(cItem.itemid).set({
                   'prodName' : sItem.prodName, 
                   'qty' : cItem.qty , 
                   'unitPrice' : sItem.cost,
@@ -126,7 +125,7 @@ storeSuggestions(context) async {
               } else {unavailableCount = unavailableCount + 1, print(unavailableCount)}
             },
           },
-          await FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').doc(storeID).set({
+          await FirebaseFirestore.instance.collection('users').doc(currUser).collection('suggestions').doc(storeID).set({
             'storeName': storeName,
             'storeAdd' : storeAdd,
             'storePhNo' : storePhNo,
@@ -158,7 +157,7 @@ storeSuggestions(context) async {
   } 
 
 // CALCULATE FOR X FOR EACH STORE IN SUGGESTIONS
-  await FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('suggestions').get().then((suggestionsDoc) async => {
+  await FirebaseFirestore.instance.collection('users').doc(currUser).collection('suggestions').get().then((suggestionsDoc) async => {
     for(DocumentSnapshot sDoc in suggestionsDoc.docs) {
       totPrice = (sDoc.data() as dynamic)['totalCost'],
       storeRating = (sDoc.data() as dynamic)['rating'],

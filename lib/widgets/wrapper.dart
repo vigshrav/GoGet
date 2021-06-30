@@ -19,7 +19,7 @@ class _WrapperState extends State<Wrapper> {
   @override
   Widget build(BuildContext context) {
     
-    final user = FirebaseAuth.instance.currentUser;
+    User? user = FirebaseAuth.instance.currentUser;
     
       return StreamBuilder<UserObjs>(
       stream: UserServices(uid: user!.uid).userRootData,

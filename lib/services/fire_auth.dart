@@ -9,15 +9,10 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   
   handleAuth() {
-    //print(user!.uid);
     return StreamBuilder(
       stream: _auth.authStateChanges(),
       builder: (BuildContext context, snapshot) {
         if (snapshot.hasData) {
-          // return MaterialApp(
-          //   debugShowCheckedModeBanner: false,
-          //   home: Home()
-          // );
           return Wrapper();
         } else {
           return MaterialApp(
@@ -25,7 +20,8 @@ class AuthService {
             home: SignIn()
           );
         }
-      });
+      }
+    );
   }
 
   // sign in with email/ pwd 
@@ -62,9 +58,10 @@ class AuthService {
       }
     }
   // sign out
-  Future signOut() async {
+  Future<void> signOut() async {
     try {
-      return await _auth.signOut();
+
+      await FirebaseAuth.instance.signOut();
       
     }catch(e) {
       print(e.toString());
